@@ -1,9 +1,11 @@
-from rest_framework.generics import GenericAPIView, get_object_or_404
-from rest_framework import status
-from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework.mixins import ListModelMixin, CreateModelMixin, UpdateModelMixin, DestroyModelMixin
+from rest_framework.authentication import BaseAuthentication, TokenAuthentication, SessionAuthentication
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.generics import GenericAPIView, get_object_or_404
+from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework.response import Response
-
+from rest_framework import status
+from .permissions import PostCommentAutorPermission
 
 from .serializers import CommentSerializer, PostSerializer
 from .models import Post, Comment
@@ -12,6 +14,9 @@ from .models import Post, Comment
 class PostViewSet(ViewSet, ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [PostCommentAutorPermission]
+
 
 
     def perform_create(self, serializer):
@@ -21,6 +26,8 @@ class PostViewSet(ViewSet, ModelViewSet):
 class CommentListCreateView(ListModelMixin, CreateModelMixin, GenericAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [PostCommentAutorPermission]
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -35,6 +42,8 @@ class CommentListCreateView(ListModelMixin, CreateModelMixin, GenericAPIView):
 class CommentUpdateDelete(UpdateModelMixin, DestroyModelMixin, GenericAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [PostCommentAutorPermission]
 
     def get_object(self):
         return get_object_or_404(self.queryset, id=self.kwargs.get('id'))
